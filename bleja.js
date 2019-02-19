@@ -34,6 +34,7 @@ class Object {
 
         this.onGround = false;
 
+        // Object skinn, WIP
         this.skinLeft = new Image();
         this.skinRight = new Image();
         this.skinDrawn = new Image();
@@ -57,69 +58,88 @@ class Object {
     }
 
     update() {
+        // Brisem njegovu trenutnu poziciju
         ctx.clearRect(this.x - 1, this.y - 1, this.width + 1, this.height + 1);
+
+        // Proveravam da li ce uskoro pasti na pod
         if (this.y + this.height + this.dy >= floor) {
+            // Ako da, stavljam ga na pod i to pamtim
             this.y += floor - this.y - this.height;
             this.onGround = true;
             this.jumps = 0;
             this.dy = 0;
         }
         else {
+            // Ako ne, sve standardno
             this.onGround = false;
             this.y += this.dy;
         }
 
+        // Ako nije na podu gravitaciono ubrzanje se dodaje
         if (!this.onGround) {
             this.dy += this.g;
         }
 
+        // Dodajem x komponentu brzine
         this.x += this.dx;
 
+        // Ucrtavam ga nakon sto sam updateovo koordinate
         if (this.hasSkin) {
+            // Ako ima skin
             ctx.drawImage(this.skinDrawn, this.x, this.y, this.width, this.height);
         }
         else {
+            // Ako je obican blok
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
 
+        // Trazim update za sledeci pocetak frame-a
         requestAnimationFrame(this.update);
     }
 }
-
-// const pom = new Object(50, 500, 50, 50, 10, -20);
-// const pom = new Object(50, 50, 50, 50, 0, 0);
 class PC extends Object {
     constructor(x, y, width, height, dx, dy, skinLeft, skinRight) {
+        // Prenosim mu sve metode i vrednosti iz Object klase
         super(x, y, width, height, dx, dy, skinLeft, skinRight);
 
+        // Pratim koliko puta je PC skocio
         this.jumps = 0;
-        this.pressed = {};
 
+        // Function binding
         this.move = this.move.bind(this);
         this.stopMove = this.stopMove.bind(this);
         this.addEventListeners = this.addEventListeners.bind(this);
 
+        // Dodaje event listenere za keypress
         this.addEventListeners();
     }
 
     addEventListeners() {
+        // Kad pritisne key
         document.addEventListener("keydown", event => {
             let key = event.key.toLowerCase();
-            // console.log(key);
+
+            // Necu opet runovati ako je jos uvek pritisnut key
             if (this.pressed[key] === true) {
                 return;
             }
+
             this.pressed[key] = true;
+
             this.move(event);
         });
+        // Kad pusti key
         document.addEventListener("keyup", event => {
             let key = event.key.toLowerCase();
+
             this.pressed[key] = false;
+            
             this.stopMove(event);
         });
     }
-
+    
     move(event) {
+        // Ovo radim kad se lik pomera
         event.preventDefault();
         const key = event.key.toLowerCase();
 
@@ -147,6 +167,7 @@ class PC extends Object {
     }
 
     stopMove(event) {
+        // Kad pusti key
         event.preventDefault();
         const key = event.key.toLowerCase();
 
