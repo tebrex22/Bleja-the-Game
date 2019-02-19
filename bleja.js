@@ -12,11 +12,13 @@ document.addEventListener("resize", () => {
 });
 
 ctx.fillStyle = "#607D8B";
-
 const gravity = 0.5;
-
+let NUM_OBJECTS = 0;
+const objects = [];
 class Object {
-    constructor(x, y, width, height, dx = 0, dy = 0, skinLeft = "", skinRight = "") {
+
+    constructor (x, y, width, height, dx = 0, dy = 0, skinLeft = "", skinRight = "") {
+
         // coordinates
         this.x = x;
         this.y = y;
@@ -28,6 +30,27 @@ class Object {
         // velocity
         this.dx = dx;
         this.dy = dy;
+
+
+        // collision points
+        this.collisionDots = {
+            goreLevo: {
+                x: this.x,
+                y: this.y
+            },
+            goreDesno: {
+                x: this.x + this.width,
+                y: this.y
+            },
+            doleLevo: {
+                x: this.x,
+                y: this.y + this.height
+            },
+            doleDesno: {
+                x: this.x + this. width,
+                y: this.y + this.height
+            }
+        };
 
         // gravity
         this.g = gravity
@@ -51,8 +74,15 @@ class Object {
         // this.ax;
         // this.ay;
 
+
+        // num of objects being inspected
+        NUM_OBJECTS++;
+        objects.push(this);
+        this.posObj = objects.length - 1;
+        
         // function binding
         this.update = this.update.bind(this);
+        this.collisionDetection = this.collisionDetection.bind(this);
 
         requestAnimationFrame(this.update);
     }
@@ -65,6 +95,7 @@ class Object {
         if (this.y + this.height + this.dy >= floor) {
             // Ako da, stavljam ga na pod i to pamtim
             this.y += floor - this.y - this.height;
+
             this.onGround = true;
             this.jumps = 0;
             this.dy = 0;
@@ -80,6 +111,7 @@ class Object {
             this.dy += this.g;
         }
 
+
         // Dodajem x komponentu brzine
         this.x += this.dx;
 
@@ -93,8 +125,61 @@ class Object {
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
 
+        this.collisionDots = {
+            goreLevo: {
+                x: this.x,
+                y: this.y
+            },
+            goreDesno: {
+                x: this.x + this.width,
+                y: this.y
+            },
+            doleLevo: {
+                x: this.x,
+                y: this.y + this.height
+            },
+            doleDesno: {
+                x: this.x + this. width,
+                y: this.y + this.height
+            }
+        };
+        objects[this.posObj] = this;
+        // console.log(objects[this.posObj]);
+        this.collisionDetection();
+
         // Trazim update za sledeci pocetak frame-a
         requestAnimationFrame(this.update);
+    }
+    collisionDetection() {
+        const collTop = false;
+        const collBot = false;
+        const collLeft = false;
+        const collRight = false;
+
+        for(let i = 0;i < NUM_OBJECTS;i++) {
+            // uvek se sece sam sa sobom brt :)
+            if(i === this.posObj) continue;
+            // right-left collision
+            if(objects[this.posObj].collisionDots.goreDesno.x >= objects[i].collisionDots.goreLevo.x
+               && objects[this.posObj].collisionDots.goreDesno.x < objects[i].collisionDots.goreDesno.x
+               && objects[this.posObj].collisionDots.goreDesno.y < objects[i].collisionDots.goreDesno.y
+               && objects[this.posObj].collisionDots.goreDesno.y > objects[i].collisionDots.goreDesno.y) collRight = true;
+            // bottom-top collision
+            else if(objects[this.posObj].collisionDots.doleDesno.y >= objects[i].collisionDots.goreDesno.y 
+                    && objects[this.posObj].collisionDots.doleDesno.y < objects[i].collisionDots.doleDesno.y
+                    && objects[this.posObj].collisionDots.doleDesno.x > objects[i].collisionDots.doleLevo.x
+                    && objects[this.posObj].collisionDots.doleDesno.x <= objects[i].collisionDots.doleDesno.x)  collBot = true;
+            // left-right collision
+            else if(objects[this.posObj].collisionDots.goreLevo.x <= objects[i].collisionDots.goreDesno.x 
+                    && objects[this.posObj].collisionDots.goreLevo.x > objects[i].collisionDots.goreLevo.x
+                    && objects[this.posObj].collisionDots.goreLevo.y < objects[i].collisionDots.goreLevo.y
+                    && objects[this.posObj].collisionDots.goreLevo.y > objects[i].collisionDots.goreLevo.y) collLeft = true;
+            // top-bottom collsion
+            else if(objects[this.posObj].collisionDots.goreLevo.y <= objects[i].collisionDots.doleLevo.y 
+                    && objects[this.posObj].collisionDots.goreLevo.y > objects[i].collisionDots.goreLevo.y 
+                    && objects[this.posObj].collisionDots.doleLevo.x >= objects[i].collisionDots.doleLevo.x
+                    && objects[this.posObj].collisionDots.doleLevo.x <= objects[i].collisionDots.doleDesno.x) collTop = true;
+        }
     }
 }
 class PC extends Object {
@@ -109,7 +194,7 @@ class PC extends Object {
         this.move = this.move.bind(this);
         this.stopMove = this.stopMove.bind(this);
         this.addEventListeners = this.addEventListeners.bind(this);
-
+        this.pressed = [];
         // Dodaje event listenere za keypress
         this.addEventListeners();
     }
@@ -189,6 +274,5 @@ class PC extends Object {
         }
     }
 }
-
+const collObj = new Object(500, 500, 100, 150);
 const pom = new PC(50, 50, 50, 50, 0, 0, './assets/dudu_duks_left.png', './assets/dudu_duks_right.png');
-const pom2 = new Object(100, 100, 50, 50);
