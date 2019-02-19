@@ -14,7 +14,7 @@ ctx.fillStyle = "#607D8B";
 const gravity = 0.5;
 
 class Object {
-    constructor (x, y, width, height, dx = 0, dy = 0, skinLeft = undefined, skinRight = undefined) {
+    constructor (x, y, width, height, dx = 0, dy = 0, skinLeft = "", skinRight = "") {
         // coordinates
         this.x = x;
         this.y = y;
@@ -39,6 +39,11 @@ class Object {
         this.skinDrawn.src = skinRight;
         this.skinLeft.src = skinLeft;
         this.skinRight.src = skinRight;
+
+        this.hasSkin = true;
+
+        if (skinLeft === "") 
+            this.hasSkin = false;
         // acceleration WIP
         // this.ax;
         // this.ay;
@@ -82,38 +87,32 @@ class Object {
             isNegativeX = -1;
         if (this.dy < 0)
             isNegativeY = -1;
-        
-        for (let X = 1, Y = 1; X <= Math.abs(this.dx) || Y <= Math.abs(this.dy); X++, Y++) {
-            if (X < Math.abs(this.dx)) {
-                this.x += 1 * isNegativeX;
-            }
-            if (Y < Math.abs(this.dy)) {
-                this.y += 1 * isNegativeY;
-            }
-            if (this.y + this.height > canvas.height - 200) {
-                this.dy = 0;
-            }
-            // if (this.y + this.height >= canvas.height - 200) {
-            //     this.onGround = true;
-            //     this.jumps = 0;
-            //     if (this.dy > 0) {
-            //         this.dy = 0;
-            //     }
-            // }
-            // else {
-            //     this.onGround = false;
-            // }
-            // if (!this.onGround) {
-            //     this.dy += this.g;
-            // }
+        if (this.dx !== 0 || this.dy !== 0) {
+            for (let X = 1, Y = 1; X <= Math.abs(this.dx) || Y <= Math.abs(this.dy); X++ , Y++) {
+                if (X < Math.abs(this.dx)) {
+                    this.x += 1 * isNegativeX;
+                }
+                if (Y < Math.abs(this.dy)) {
+                    this.y += 1 * isNegativeY;
+                }
+                if (this.y + this.height > canvas.height - 200) {
+                    this.dy = 0;
+                }
+                ctx.clearRect(this.x - 1, this.y - 1, this.width + 1, this.height + 1);
 
-            // ctx.clearRect(this.x - offsetX, this.y - offsetY, this.width + 2 * offsetX, this.height + 2 * offsetY);
-            ctx.clearRect(this.x, this.y, this.width, this.height + 1);
-
-            if(this.skinDrawn === undefined)
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-            else
+                if (this.hasSkin === false)
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                else
+                    ctx.drawImage(this.skinDrawn, this.x, this.y, this.width, this.height);
+            }
+        }
+        else {
+            if (this.hasSkin === true) {
                 ctx.drawImage(this.skinDrawn, this.x, this.y, this.width, this.height);
+            }
+            else {
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
         }
         // this.applyMovement();
     }
@@ -175,7 +174,7 @@ class PC extends Object {
             this.dx = 5;
         }
         else if(key === 's') {
-            // CROUCH
+            // CROUCH, SLIDE
         }
     }
 
@@ -201,4 +200,6 @@ class PC extends Object {
         }
     }
 }
+
 const pom = new PC(50, 50, 50, 50, 0, 0, './assets/dudu_duks_left.png', './assets/dudu_duks_right.png');
+const pom2 = new Object(100, 100, 50, 50);
